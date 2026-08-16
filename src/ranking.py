@@ -1,22 +1,27 @@
 import math
 from src.tokenizer import tokenize
 
-class TFIDFRanker:
-    def __init__(self, index, total_documents):
+class BM25Ranker:
+    def __init__(self, index, k1=1.2, b=0.75):
         self.index = index
-        self.total_documents = total_documents
+        self.k1 = k1
+        self.b = b
 
     def idf(self, term):
         df = len(self.index.search(term))
+        N = len(self.index.document_lengths)
 
         if df == 0:
             return 0
 
-        return math.log(self.total_documents / df)
+        return math.log((N - df + 0.5) / (df + 0.5) + 1)
 
     def score(self, document_id, query):
         query_terms = set(tokenize(query))
-        total_score = 0
+        score = 0
+
+        dl = self.index.document_lengths[document_id]
+        avgdl = self.index.average_document_length()
 
         for term in query_terms:
             postings = self.index.search(term)
@@ -25,20 +30,22 @@ class TFIDFRanker:
                 continue
 
             tf = postings[document_id]
-            idf = self.idf(term)
-            total_score += tf * idf
 
-        return total_score
+            length_normalization = ((1 - self.b) + self.b * (dl / avgdl))
+
+            tf_component = (tf * (self.k1+ 1)) / (tf + self.k1 * length_normalization)
+            score += self.idf(term) * tf_component
+
+        return score
 
     
     def rank(self, query, candidates):
-        scores = []
+        results = []
 
         for document_id in candidates:
             score = self.score(document_id, query)
+            results.append((document_id, score))
 
-            scores.append((document_id, score))
+        results.sort(key=lambda x : x[1], reverse=True)
 
-        scores.sort(key=lambda x: x[1], reverse=True)
-
-        return scores
+        return results
