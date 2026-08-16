@@ -10,9 +10,10 @@ A search engine built from scratch, designed to explore the fundamentals of info
 
 **Inverted Index** maps each unique token to the documents containing it along with term frequencies, making it a fast document lookup without scanning the full text of documents.
 
-## Ranking Unit ( TF-IDF )
+## Ranking Unit ( Okapi BM25 )
 
-**TF-IDF Ranker** computes similarity scores between a search query and retrieved candidate documents using Term Frequency (TF) and Inverse Document Frequency (IDF), ranking results by relevance.
+**BM25 Ranker** (`BM25Ranker` in `src/ranking.py`) scores and ranks candidate documents for a given query using the Okapi BM25 algorithm. It incorporates probabilistic IDF weighting, term frequency saturation ($k_1$), and document length normalization ($b$) relative to average document length.
+
 
 ## Candidate Retrieval Unit
 
