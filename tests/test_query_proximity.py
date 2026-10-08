@@ -1,42 +1,38 @@
-from src.tokenizer import tokenize
 from src.index import InvertedIndex
 from src.ranking import BM25Ranker
 
 
-index = InvertedIndex()
+def test_query_proximity():
+    index = InvertedIndex()
 
-for i in range(1, 7):
+    index.add_document(
+        "1.txt",
+        ["solar", "energy", "is", "important"]
+    )
 
-    with open(f"data/{i}.txt", "r") as content:
-        text = content.read()
+    ranker = BM25Ranker(index)
 
-    index.add_document(i, tokenize(text))
+    score = ranker.query_proximity(
+        "1.txt",
+        "solar energy"
+    )
 
-
-ranker = BM25Ranker(index)
-
-
-queries = [
-    "solar energy",
-    "human brain",
-    "network protocol",
-]
+    assert score > 0
 
 
-for query in queries:
+def test_query_proximity_missing_term():
+    index = InvertedIndex()
 
-    print(f"\nQUERY: {query}")
+    index.add_document(
+        "1.txt",
+        ["solar", "energy"]
+    )
 
-    for document_id in range(1, 7):
+    ranker = BM25Ranker(index)
 
-        proximity = ranker.query_proximity(
-            document_id,
-            query
-        )
+    score = ranker.query_proximity(
+        "1.txt",
+        "solar moon"
+    )
 
-        if proximity > 0:
-
-            print(
-                f"D{document_id} → "
-                f"{proximity:.4f}"
-            )
+    assert score == 0

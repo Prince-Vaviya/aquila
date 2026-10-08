@@ -1,15 +1,36 @@
 from src.index import InvertedIndex
-from src.tokenizer import tokenize
 
-index = InvertedIndex()
 
-for i in range(1, 7):
-    with open(f"data/{i}.txt", "r") as d:
-        tokens = d.read()
-    index.add_document(i, tokenize(tokens))
-    print(i, " ---> ", index.document_length(i))
+def test_add_document():
+    index = InvertedIndex()
 
-test_keywords = ["internet", "energy", "brain", "knowledge", "protocol", "xyz"]
+    index.add_document(
+        "1.txt",
+        ["sun", "is", "hot", "sun"]
+    )
 
-for i in test_keywords:
-    print(i, " ---> ", index.search(i))
+    postings = index.search("sun")
+
+    assert "1.txt" in postings
+    assert postings["1.txt"]["frequency"] == 2
+    assert postings["1.txt"]["positions"] == [0, 3]
+
+
+def test_document_length():
+    index = InvertedIndex()
+
+    index.add_document(
+        "1.txt",
+        ["sun", "is", "hot"]
+    )
+
+    assert index.document_lengths["1.txt"] == 3
+
+
+def test_average_document_length():
+    index = InvertedIndex()
+
+    index.add_document("1.txt", ["a", "b"])
+    index.add_document("2.txt", ["a", "b", "c", "d"])
+
+    assert index.average_document_length() == 3

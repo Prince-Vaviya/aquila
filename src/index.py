@@ -1,4 +1,5 @@
 from collections import defaultdict
+from src.tokenizer import tokenize
 
 
 class InvertedIndex:
@@ -37,3 +38,19 @@ class InvertedIndex:
             sum(self.document_lengths.values())
             / len(self.document_lengths)
         )
+
+
+def build_index(documents):
+
+    index = InvertedIndex()
+
+    for document_id, text in documents.items():
+
+        tokens = tokenize(text)
+
+        index.add_document(
+            document_id,
+            tokens
+        )
+
+    return index

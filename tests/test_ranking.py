@@ -1,18 +1,54 @@
-from src.ranking import BM25Ranker
-from src.tokenizer import tokenize
 from src.index import InvertedIndex
-from src.search import retrieve_candidates
+from src.ranking import BM25Ranker
 
-index = InvertedIndex()
 
-for i in range(1, 7):
-    with open(f"data/{i}.txt", "r") as content:
-        file_contents = content.read()
+def create_index():
+    index = InvertedIndex()
 
-    index.add_document(i, tokenize(file_contents))
+    index.add_document(
+        "1.txt",
+        ["sun", "is", "hot"]
+    )
 
-ranker = BM25Ranker(index)
+    index.add_document(
+        "2.txt",
+        ["sun", "sun", "hot"]
+    )
 
-distance = ranker.term_proximity(3, "solar", "energy")
+    index.add_document(
+        "3.txt",
+        ["moon", "is", "cold"]
+    )
 
-print(distance)
+    return index
+
+
+def test_idf():
+    index = create_index()
+    ranker = BM25Ranker(index)
+
+    score = ranker.idf("sun")
+
+    assert score > 0
+
+
+def test_bm25_score():
+    index = create_index()
+    ranker = BM25Ranker(index)
+
+    score = ranker.score("1.txt", "sun")
+
+    assert score > 0
+
+
+def test_ranking():
+    index = create_index()
+    ranker = BM25Ranker(index)
+
+    results = ranker.rank(
+        "sun",
+        {"1.txt", "2.txt"}
+    )
+
+    assert len(results) == 2
+    assert results[0][1] >= results[1][1]
